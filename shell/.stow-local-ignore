@@ -1,0 +1,16 @@
+# Only shell configuration and the non-secret input helper belong in this package.
+\.git
+\.ssh
+auth\.json
+\.env(\..*)?
+node_modules
+\.DS_Store
+.*\.sw[op]
+.*~
+
+# Runtime state must never be linked or versioned.
+\.(?:bash|zsh)_history
+\.zsh_sessions
+\.zcompdump.*
+\.lesshst
+\.python_history

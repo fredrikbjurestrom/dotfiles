@@ -1,6 +1,6 @@
 # Dotfiles
 
-Personlig Pi- och Neovim-konfiguration, hanterad med Git och GNU Stow.
+Personlig Pi-, Neovim- och shell-konfiguration, hanterad med Git och GNU Stow.
 Bara uttryckligt valda konfigurationer ingår; hemkatalogen är inte ett Git-repo.
 
 ## Struktur
@@ -12,14 +12,23 @@ pi/.pi/agent/
   prompts/
   skills/
   settings.json
+pi/.local/bin/pi
 nvim/.config/nvim/
+shell/
+  .profile, .shrc
+  .zprofile, .zshrc, .zshenv
+  .bash_profile, .bashrc, .bash_logout
+  .inputrc, .node-version
+  secret-env.sh
+  .config/starship.toml
 ```
 
-Varje toppnivåkatalog (`pi`, `nvim`) är ett Stow-paket. Filernas sökvägar
-inuti paketet motsvarar sökvägar under hemkatalogen.
+Katalogerna `pi`, `nvim` och `shell` är Stow-paket. Filernas sökvägar
+inuti paketet motsvarar sökvägar under hemkatalogen. `tests/` innehåller
+regressionstester och ska inte länkas med Stow.
 
 `.stowrc` anger hemkatalogen som mål och använder `--no-folding`. Därför
-blir katalogerna under `~/.pi` och `~/.config/nvim` riktiga kataloger,
+förblir katalogerna under hemkatalogen riktiga kataloger,
 med symboliska länkar till de enskilda konfigurationsfilerna i detta repo.
 Det hindrar lokalt körningstillstånd från att hamna här genom en länkad
 hel katalog. Kör Stow-kommandona nedan från repots rot.
@@ -40,8 +49,8 @@ Efter att repot publicerats på GitHub:
 mkdir -p ~/source
 git clone git@github.com:DITT_NAMN/dotfiles.git ~/source/dotfiles
 cd ~/source/dotfiles
-stow --simulate --verbose pi nvim
-stow pi nvim
+stow --simulate --verbose pi nvim shell
+stow pi nvim shell
 ```
 
 Ersätt `DITT_NAMN` med rätt GitHub-användare. Förhandsgranska alltid först.
@@ -51,6 +60,73 @@ undan dem innan du länkar. Använd inte `--adopt` eller tvingande
 
 Pi-inloggningen görs lokalt på varje dator. Modellvalen i `settings.json`
 förutsätter tillgång till de konfigurerade modellerna.
+
+## Shell och Node
+
+`.profile` innehåller gemensam miljö och idempotenta PATH-hjälpare.
+Interaktiva Bash- och Zsh-sessioner läser samma `.shrc` för alias,
+funktioner och fnm. Login-Bash läser även `.bashrc`. Cargo-initieringen
+är villkorlig och sker en gång per normalt shell-startförlopp; `.zshenv`
+behåller Rust-stödet även för icke-interaktiv Zsh.
+
+fnm använder `--use-on-cd --version-file-strategy recursive` och söker
+både `.node-version` och `.nvmrc` uppåt från aktuell katalog. I Bash sker
+versionsbytet inför nästa prompt, i Zsh vid katalogbyte. `engines.node`
+i `package.json` används inte (`--resolve-engines=false`), och inga
+Node-versioner installeras automatiskt av shell-konfigurationen.
+
+`~/.node-version` anger fortfarande `v23`. På en ny dator behöver fnm
+och önskade Node-versioner installeras separat. För samma standardval:
+
+```bash
+fnm install v23
+fnm default v23
+```
+
+Ett projekts egna versionsfil får styra dess Node-version. Standardvalet
+ovan är ett bevarat personligt val, inte ett automatiskt uppdaterat LTS-val.
+
+Gemensamma hjälpare:
+
+- `up [n]`: gå upp `n` kataloger, normalt en. Noll gör ingenting;
+  negativa eller ogiltiga argument avvisas.
+- `jwt-decode TOKEN`: avkoda base64url-header och claims med `jq`.
+  Signaturen verifieras **inte**.
+- `secret_env VARIABELNAMN`: mata in ett miljövärde utan synlig inmatning.
+  `secret-env.sh` är bara programkod och kan versionshanteras; inga
+  inmatade värden sparas i filen. I Zsh måste eventuell kommandospårning
+  först stängas av med `set +x`, eftersom Zsh återställer spårningsläget
+  efter funktionsanrop. Bash-helpern stänger själv av spårningen.
+
+### Pi launcher
+
+`pi/.local/bin/pi` startar Pi med dess egen Node-installation, utan att
+ändra projektets PATH eller Node-version. Shell-konfigurationen placerar
+`~/.local/bin` före fnm:s binärer så att denna launcher används även om
+en projektversion av Node också har Pi installerat.
+
+Standardinstallationen är:
+
+```text
+${FNM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}/node-versions/v24.7.0/installation
+```
+
+Den befintliga installationen används; migreringen installerar eller
+uppgraderar inget. På en ny dator kan motsvarande installation skapas med:
+
+```bash
+fnm install v24.7.0
+fnm exec --using=v24.7.0 npm install --global --ignore-scripts @earendil-works/pi-coding-agent
+```
+
+För en annan installation: sätt `PI_NODE_HOME` till dess `installation`-
+katalog, som ska innehålla `bin/node` och `bin/pi`. Detta är en inställning
+för dotfiles-launchern, inte en inbyggd Pi-inställning. Om installationen
+saknas får du ett felmeddelande; launchern faller inte tyst tillbaka till
+projektets Node-version.
+
+Efter ändringar i shell-filerna: öppna en ny terminal/session. Undvik att
+återläsa den gamla och nya fnm-initieringen upprepade gånger i samma shell.
 
 ## Ändra konfiguration
 
@@ -62,8 +138,8 @@ Skapa nya filer direkt under motsvarande paket i repot och kör sedan:
 
 ```bash
 cd ~/source/dotfiles
-stow --simulate --verbose --restow pi nvim
-stow --restow pi nvim
+stow --simulate --verbose --restow pi nvim shell
+stow --restow pi nvim shell
 git status --short
 git diff
 ```
@@ -85,6 +161,8 @@ Ett privat GitHub-repo är ingen anledning att versionshantera hemligheter.
 - Pi:s `auth.json`, `sessions/`, `models-store.json`, `trust.json`,
   `models.json`, `npm/` och `bin/`.
 - `.env`-filer och installerade `node_modules`.
+- Shellhistorik, `.zcompdump*` och annat genererat shell-tillstånd.
+- Installerade verktyg under exempelvis `.cargo`, fnm och `.opencode`.
 - Neovims data, plugininstallationer och cache utanför `~/.config/nvim`.
 - Neovim-konfigurationens tidigare `.git`-katalog.
 
@@ -98,21 +176,28 @@ Ignoreringsregler ersätter inte granskning av innehållet i tillåtna filer.
 Från repots rot:
 
 ```bash
-stow --simulate --verbose pi nvim
-node --test pi/.pi/agent/extensions/orc/index.test.mjs \
+stow --simulate --verbose pi nvim shell
+python3 tests/shell_test.py
+fnm exec --using=v24.7.0 node --test pi/.pi/agent/extensions/orc/index.test.mjs \
   pi/.pi/agent/extensions/subagent/index.test.mjs \
   pi/.pi/agent/extensions/subagent/runner.test.mjs
 ```
 
-Testerna använder de lokalt installerade Node- och Pi-versionerna.
+Shelltesterna kräver Python 3, Bash, Zsh och jq. De kör i temporära
+hemkataloger med stubbar för verktygsinitiering och påhittade inmatningsvärden;
+de läser inte in användarens verkliga startup-filer eller hemligheter.
+De kontrollerar login/icke-login, hjälpfunktionerna, PATH och Pi-launchern.
+
+Pi-testerna körs med Pi-installationens Node-version så att både rätt
+runtime och den installerade Pi-modulen hittas, oberoende av projektets Node-val.
 Neovims dokumentation och tester finns under `nvim/.config/nvim/`.
 
 ## Koppla bort länkarna
 
 ```bash
 cd ~/source/dotfiles
-stow --simulate --verbose --delete pi nvim
-stow --delete pi nvim
+stow --simulate --verbose --delete pi nvim shell
+stow --delete pi nvim shell
 ```
 
 Det tar bort de Stow-hanterade länkarna, inte filerna i repot eller
@@ -122,3 +207,4 @@ säkerhetskopior separat om den tidigare konfigurationen ska användas.
 Vid den första migreringen sparades originalkonfigurationen utanför
 repot i en katalog med namnet `~/dotfiles-backup.*`. Neovim-backupen
 innehåller även dess tidigare Git-repo och lokala ändringar.
+Shell-migreringen har en separat backup under `~/dotfiles-shell-backup.*`.

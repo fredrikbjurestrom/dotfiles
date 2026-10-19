@@ -1,0 +1,12 @@
+#!/bin/sh
+# Run Pi on its own Node installation without changing the project's PATH.
+# PI_NODE_HOME is a dotfiles-specific override, not a built-in Pi setting.
+node_home="${PI_NODE_HOME:-${FNM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}/node-versions/v24.7.0/installation}"
+
+if [ ! -x "$node_home/bin/node" ] || [ ! -f "$node_home/bin/pi" ]; then
+  printf 'Pi requires Node and Pi in %s, or an explicit PI_NODE_HOME.\n' "$node_home" >&2
+  printf 'See the Pi launcher section in ~/source/dotfiles/README.md.\n' >&2
+  exit 127
+fi
+
+exec "$node_home/bin/node" "$node_home/bin/pi" "$@"

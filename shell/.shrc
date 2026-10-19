@@ -1,0 +1,91 @@
+# Shared interactive configuration for Bash and Zsh.
+case $- in *i*) ;; *) return ;; esac
+
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+alias lsd='find . -maxdepth 1 -type d'
+alias lsf='find . -maxdepth 1 -type f'
+
+up() {
+  local levels="${1-1}" destination="$PWD"
+  if [ "$#" -gt 1 ]; then
+    printf 'Usage: up [non-negative integer]\n' >&2
+    return 2
+  fi
+  case "$levels" in
+    ''|*[!0-9]*) printf 'Usage: up [non-negative integer]\n' >&2; return 2 ;;
+  esac
+  # Avoid octal arithmetic for arguments such as 08.
+  while [ "${levels#0}" != "$levels" ]; do levels="${levels#0}"; done
+  levels="${levels:-0}"
+  if ! [ "$levels" -ge 0 ] 2>/dev/null; then
+    printf 'Invalid directory count.\n' >&2
+    return 2
+  fi
+  [ "$levels" -eq 0 ] && return 0
+  while [ "$levels" -gt 0 ] && [ "$destination" != / ]; do
+    destination="${destination%/*}"
+    destination="${destination:-/}"
+    levels=$((levels - 1))
+  done
+  cd -- "$destination"
+}
+
+y() {
+  local tmp="$(mktemp "${TMPDIR:-/tmp}/yazi-cwd.XXXXXX")" cwd
+  yazi "$@" --cwd-file="$tmp" || { rm -f -- "$tmp"; return; }
+  IFS= read -r -d '' cwd < "$tmp" 2>/dev/null || cwd="$(tr -d '\0' < "$tmp")"
+  rm -f -- "$tmp"
+  [ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && cd -- "$cwd"
+}
+
+# Decode the header and claims of a compact JWT. This does NOT verify its signature.
+jwt-decode() {
+  if [ "$#" -ne 1 ]; then
+    printf 'Usage: jwt-decode TOKEN (decoding only; no signature verification)\n' >&2
+    return 2
+  fi
+  if ! command -v jq >/dev/null 2>&1; then
+    printf 'jwt-decode requires jq.\n' >&2
+    return 127
+  fi
+  printf '%s' "$1" | jq -Rse '
+    split(".") as $parts
+    | if ($parts | length) != 3
+         or ($parts[0] | length) == 0
+         or ($parts[1] | length) == 0
+         or any($parts[]; test("^[A-Za-z0-9_-]*$") | not)
+      then error("Expected three base64url segments with a non-empty header and payload")
+      else $parts[0:2]
+        | map(
+            if length % 4 == 1 then error("Invalid base64url length") else . end
+            | gsub("-"; "+") | gsub("_"; "/")
+            | . + ("=" * ((4 - length % 4) % 4))
+            | @base64d | fromjson
+          )
+        | if all(.[]; type == "object") then .
+          else error("JWT header and claims must be JSON objects") end
+      end
+  '
+}
+
+# This file defines a helper; values are entered manually and never stored here.
+[ -r "$HOME/secret-env.sh" ] && . "$HOME/secret-env.sh"
+
+# fnm handles .node-version/.nvmrc in the current directory and its ancestors.
+# Version files are explicit: do not infer versions from package.json engines.
+FNM_PATH="${FNM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}"
+[ -d "$FNM_PATH" ] && path_prepend "$FNM_PATH"
+export PATH
+if command -v fnm >/dev/null 2>&1; then
+  if [ -n "${ZSH_VERSION-}" ]; then
+    eval "$(fnm env --shell zsh --use-on-cd --version-file-strategy recursive --resolve-engines=false)"
+  elif [ -n "${BASH_VERSION-}" ]; then
+    eval "$(fnm env --shell bash --use-on-cd --version-file-strategy recursive --resolve-engines=false)"
+  fi
+fi
+
+# Keep independent launchers (notably Pi) ahead of fnm's project binaries.
+path_prepend "$HOME/.local/bin"
+export PATH

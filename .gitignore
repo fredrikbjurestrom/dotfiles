@@ -12,7 +12,16 @@
 **/.env
 **/.env.*
 
+# Shell history and generated state (secret-env.sh itself is just code).
+**/.bash_history
+**/.zsh_history
+**/.zsh_sessions/
+**/.zcompdump*
+**/.lesshst
+**/.python_history
+
 # Installed dependencies and editor/OS temporary files.
+**/__pycache__/
 **/node_modules/
 **/.DS_Store
 **/*.swp
