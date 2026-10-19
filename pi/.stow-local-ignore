@@ -1,0 +1,12 @@
+# Perl regular expressions. Keep .gitignore and documentation linkable.
+\.git
+\.ssh
+auth\.json
+\.env(\..*)?
+node_modules
+\.DS_Store
+.*\.sw[op]
+.*~
+
+# Only link the selected Pi configuration; never local runtime state.
+^/\.pi/agent/(?!(?:agents|extensions|prompts|skills)(?:/|$)|settings\.json$).*

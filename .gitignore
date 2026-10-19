@@ -1,0 +1,20 @@
+# Pi: only explicitly selected configuration belongs in Git.
+/pi/.pi/agent/*
+!/pi/.pi/agent/agents/
+!/pi/.pi/agent/extensions/
+!/pi/.pi/agent/prompts/
+!/pi/.pi/agent/skills/
+!/pi/.pi/agent/settings.json
+
+# Secrets must stay local, even in an otherwise tracked directory.
+**/.ssh/
+**/auth.json
+**/.env
+**/.env.*
+
+# Installed dependencies and editor/OS temporary files.
+**/node_modules/
+**/.DS_Store
+**/*.swp
+**/*.swo
+**/*~
