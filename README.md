@@ -108,15 +108,15 @@ en projektversion av Node också har Pi installerat.
 Standardinstallationen är:
 
 ```text
-${FNM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}/node-versions/v24.7.0/installation
+${FNM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}/node-versions/v24.22.1/installation
 ```
 
 Den befintliga installationen används; migreringen installerar eller
 uppgraderar inget. På en ny dator kan motsvarande installation skapas med:
 
 ```bash
-fnm install v24.7.0
-fnm exec --using=v24.7.0 npm install --global --ignore-scripts @earendil-works/pi-coding-agent
+fnm install v24.22.1
+fnm exec --using=v24.22.1 npm install --global --ignore-scripts @earendil-works/pi-coding-agent
 ```
 
 För en annan installation: sätt `PI_NODE_HOME` till dess `installation`-
