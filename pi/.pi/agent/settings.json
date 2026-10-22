@@ -3,13 +3,13 @@
   "defaultProvider": "github-copilot",
   "defaultThinkingLevel": "high",
   "enabledModels": [
+    "github-copilot/claude-sonnet-5.5",
+    "github-copilot/claude-opus-5.5",
     "github-copilot/gpt-6.1-sol",
     "github-copilot/gpt-6-luna",
-    "github-copilot/gpt-6-astra",
-    "github-copilot/claude-opus-5.5",
-    "github-copilot/claude-sonnet-5.5"
+    "github-copilot/gpt-6-astra"
   ],
   "hideThinkingBlock": true,
-  "lastChangelogVersion": "1.3.0",
+  "lastChangelogVersion": "1.4.0",
   "theme": "dark"
 }
