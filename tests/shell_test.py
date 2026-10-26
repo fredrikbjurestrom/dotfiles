@@ -201,10 +201,10 @@ exit 42
                                 env=env, capture_output=True, text=True)
         self.assertEqual(result.returncode, 127)
         self.assertIn("PI_NODE_HOME", result.stderr)
-        self.assertIn("v24.7.0", result.stderr)
+        self.assertIn("aliases/default", result.stderr)
 
         fnm_dir = self.home / "custom fnm"
-        node_home = fnm_dir / "node-versions/v24.7.0/installation"
+        node_home = fnm_dir / "aliases/default"
         node_home.parent.mkdir(parents=True)
         node_home.symlink_to(runtime, target_is_directory=True)
         result = subprocess.run([REPO / "pi/.local/bin/pi", "--version"],

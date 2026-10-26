@@ -105,15 +105,16 @@ en projektversion av Node också har Pi installerat.
 Standardinstallationen är:
 
 ```text
-${FNM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}/node-versions/v26.12.1/installation
+${FNM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}/aliases/default
 ```
 
-Den befintliga installationen används; migreringen installerar eller
-uppgraderar inget. På en ny dator kan motsvarande installation skapas med:
+Det är fnm:s default-alias (en symlänk till vald Node-version), så launchern
+följer `fnm default <version>` utan att versionen är hårdkodad. Pi måste vara
+installerat i den Node-versionen. På en ny dator:
 
 ```bash
-fnm install v26.12.1
-fnm exec --using=v26.12.1 npm install --global --ignore-scripts @earendil-works/pi-coding-agent
+fnm install <version> && fnm default <version>
+fnm exec --using=default npm install --global --ignore-scripts @earendil-works/pi-coding-agent
 ```
 
 För en annan installation: sätt `PI_NODE_HOME` till dess `installation`-
@@ -175,7 +176,7 @@ Från repots rot:
 ```bash
 stow --simulate --verbose pi nvim shell
 python3 tests/shell_test.py
-fnm exec --using=v26.12.1 node --test pi/.pi/agent/extensions/orc/index.test.mjs \
+fnm exec --using=default node --test pi/.pi/agent/extensions/orc/index.test.mjs \
   pi/.pi/agent/extensions/subagent/index.test.mjs \
   pi/.pi/agent/extensions/subagent/runner.test.mjs
 ```
