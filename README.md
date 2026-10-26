@@ -75,12 +75,9 @@ versionsbytet inför nästa prompt, i Zsh vid katalogbyte. `engines.node`
 i `package.json` används inte (`--resolve-engines=false`), och inga
 Node-versioner installeras automatiskt av shell-konfigurationen.
 
-`~/.node-version` anger fortfarande `v23`. På en ny dator behöver fnm
-och önskade Node-versioner installeras separat. För samma standardval:
-
 ```bash
-fnm install v23
-fnm default v23
+fnm install v26
+fnm default v26
 ```
 
 Ett projekts egna versionsfil får styra dess Node-version. Standardvalet
@@ -108,15 +105,15 @@ en projektversion av Node också har Pi installerat.
 Standardinstallationen är:
 
 ```text
-${FNM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}/node-versions/v24.22.1/installation
+${FNM_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/fnm}/node-versions/v26.12.1/installation
 ```
 
 Den befintliga installationen används; migreringen installerar eller
 uppgraderar inget. På en ny dator kan motsvarande installation skapas med:
 
 ```bash
-fnm install v24.22.1
-fnm exec --using=v24.22.1 npm install --global --ignore-scripts @earendil-works/pi-coding-agent
+fnm install v26.12.1
+fnm exec --using=v26.12.1 npm install --global --ignore-scripts @earendil-works/pi-coding-agent
 ```
 
 För en annan installation: sätt `PI_NODE_HOME` till dess `installation`-
@@ -178,7 +175,7 @@ Från repots rot:
 ```bash
 stow --simulate --verbose pi nvim shell
 python3 tests/shell_test.py
-fnm exec --using=v24.7.0 node --test pi/.pi/agent/extensions/orc/index.test.mjs \
+fnm exec --using=v26.12.1 node --test pi/.pi/agent/extensions/orc/index.test.mjs \
   pi/.pi/agent/extensions/subagent/index.test.mjs \
   pi/.pi/agent/extensions/subagent/runner.test.mjs
 ```
