@@ -1,0 +1,14 @@
+[user]
+	name = Fredrik Bjureström
+	email = fredrik.bjurestrom@nok.se
+	signingkey = 31497547DFC8E360
+[fetch]
+	prune = true
+[pull]
+	rebase = true
+[init]
+	defaultBranch = main
+[rebase]
+	autoStash = true
+[commit]
+	gpgsign = true

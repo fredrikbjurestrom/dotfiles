@@ -1,17 +1,13 @@
 #!/usr/bin/zsh
 
-# Login shells load .profile through .zprofile.
-if [[ ! -o login ]] && [ -r "$HOME/.profile" ]; then
-  . "$HOME/.profile"
-fi
-
+# .profile is already loaded by .zshenv.
 [ -r "$HOME/.shrc" ] && . "$HOME/.shrc"
 
-# History, matching the Bash settings (ignoreboth, histappend).
+# Zsh cannot save more lines than it keeps in memory, so the two limits must match.
 HISTFILE="${HISTFILE:-$HOME/.zsh_history}"
-HISTSIZE=1000
-SAVEHIST=2000
-setopt APPEND_HISTORY HIST_IGNORE_DUPS HIST_IGNORE_SPACE
+HISTSIZE=50000
+SAVEHIST=50000
+setopt SHARE_HISTORY HIST_IGNORE_ALL_DUPS HIST_IGNORE_SPACE
 
 autoload -Uz compinit && compinit -i
 

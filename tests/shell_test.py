@@ -86,6 +86,24 @@ printf '%s' "$PATH"
                 self.assertNotIn("not found", result.stderr)
                 self.assertNotIn("no such file", result.stderr.lower())
 
+    def test_dotnet_root_is_set_only_for_a_user_local_install(self):
+        code = 'printf "%s|%s" "${DOTNET_ROOT-}" "$PATH"'
+        for shell in SHELLS:
+            with self.subTest(shell=shell, installed=False):
+                result = self.shell(shell, code)
+                self.check(result)
+                self.assertEqual(result.stdout.split("|")[0], "")
+        executable(self.home / "dotnet/dotnet", "#!/bin/sh\n")
+        for shell in SHELLS:
+            with self.subTest(shell=shell, installed=True):
+                result = self.shell(shell, code)
+                self.check(result)
+                root, path = result.stdout.split("|")
+                self.assertEqual(root, str(self.home / "dotnet"))
+                entries = path.split(":")
+                self.assertLess(entries.index(str(self.home / ".local/bin")),
+                                entries.index(str(self.home / "dotnet")))
+
     def test_profile_is_posix_and_path_prepend_is_idempotent(self):
         result = subprocess.run(["sh", "-c", '''
 . "$HOME/.profile"

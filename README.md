@@ -1,6 +1,6 @@
 # Dotfiles
 
-Personlig Pi-, Neovim- och shell-konfiguration, hanterad med Git och GNU Stow.
+Personlig Pi-, Neovim-, Git- och shell-konfiguration, hanterad med Git och GNU Stow.
 Bara uttryckligt valda konfigurationer ingår; hemkatalogen är inte ett Git-repo.
 
 ## Struktur
@@ -16,14 +16,15 @@ pi/.local/bin/pi
 nvim/.config/nvim/
 shell/
   .profile, .shrc
-  .zprofile, .zshrc, .zshenv
+  .zshenv, .zshrc
   .bash_profile, .bashrc, .bash_logout
   .inputrc, .node-version
   secret-env.sh
   .config/starship.toml
+git/.gitconfig
 ```
 
-Katalogerna `pi`, `nvim` och `shell` är Stow-paket. Filernas sökvägar
+Katalogerna `pi`, `nvim`, `shell` och `git` är Stow-paket. Filernas sökvägar
 inuti paketet motsvarar sökvägar under hemkatalogen. `tests/` innehåller
 regressionstester och ska inte länkas med Stow.
 
@@ -49,8 +50,8 @@ Efter att repot publicerats på GitHub:
 mkdir -p ~/source
 git clone git@github.com:DITT_NAMN/dotfiles.git ~/source/dotfiles
 cd ~/source/dotfiles
-stow --simulate --verbose pi nvim shell
-stow pi nvim shell
+stow --simulate --verbose pi nvim shell git
+stow pi nvim shell git
 ```
 
 Ersätt `DITT_NAMN` med rätt GitHub-användare. Förhandsgranska alltid först.
@@ -63,11 +64,19 @@ förutsätter tillgång till de konfigurerade modellerna.
 
 ## Shell och Node
 
-`.profile` innehåller gemensam miljö och idempotenta PATH-hjälpare.
-Interaktiva Bash- och Zsh-sessioner läser samma `.shrc` för alias,
-funktioner och fnm. Login-Bash läser även `.bashrc`. Cargo-initieringen
-är villkorlig och sker en gång per normalt shell-startförlopp; `.zshenv`
-behåller Rust-stödet även för icke-interaktiv Zsh.
+`.profile` innehåller gemensam miljö och en idempotent PATH-hjälpare.
+Zsh läser den från `.zshenv`, alltså i varje Zsh-process, så att skript,
+editorer och agenter får samma miljö som terminalen. Bash läser den vid
+login och i interaktiva sessioner. Interaktiva Bash- och Zsh-sessioner
+läser samma `.shrc` för alias, funktioner och fnm. Login-Bash läser även
+`.bashrc`. Cargo-initieringen är villkorlig och sker en gång per normalt
+shell-startförlopp.
+
+En .NET-installation under `~/dotnet` läggs på PATH och pekas ut med
+`DOTNET_ROOT`, som globala verktyg (`dotnet-ef`, `csharpier`) behöver för
+att hitta runtime utanför standardplatsen. Saknas katalogen sätts inget.
+
+Zsh-historiken delas mellan öppna terminaler (`SHARE_HISTORY`).
 
 fnm använder `--use-on-cd --version-file-strategy recursive` och söker
 både `.node-version` och `.nvmrc` uppåt från aktuell katalog. I Bash sker
@@ -136,8 +145,8 @@ Skapa nya filer direkt under motsvarande paket i repot och kör sedan:
 
 ```bash
 cd ~/source/dotfiles
-stow --simulate --verbose --restow pi nvim shell
-stow --restow pi nvim shell
+stow --simulate --verbose --restow pi nvim shell git
+stow --restow pi nvim shell git
 git status --short
 git diff
 ```
@@ -174,7 +183,7 @@ Ignoreringsregler ersätter inte granskning av innehållet i tillåtna filer.
 Från repots rot:
 
 ```bash
-stow --simulate --verbose pi nvim shell
+stow --simulate --verbose pi nvim shell git
 python3 tests/shell_test.py
 fnm exec --using=default node --test pi/.pi/agent/extensions/orc/index.test.mjs \
   pi/.pi/agent/extensions/subagent/index.test.mjs \
@@ -194,8 +203,8 @@ Neovims dokumentation och tester finns under `nvim/.config/nvim/`.
 
 ```bash
 cd ~/source/dotfiles
-stow --simulate --verbose --delete pi nvim shell
-stow --delete pi nvim shell
+stow --simulate --verbose --delete pi nvim shell git
+stow --delete pi nvim shell git
 ```
 
 Det tar bort de Stow-hanterade länkarna, inte filerna i repot eller
